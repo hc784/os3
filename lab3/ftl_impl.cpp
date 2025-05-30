@@ -31,7 +31,7 @@ void GreedyFTL::allocateNewActiveBlock() {
     }
     active_block  = idx;
     active_offset = 0;
-    //blocks[idx].is_free = false;
+    blocks[idx].is_free = false;
 }
 
 void GreedyFTL::invalidateOldMapping(int logicalPage) {
@@ -58,7 +58,7 @@ void GreedyFTL::internalWrite(int logicalPage, int data, bool isHostWrite) {
 
     /* 블록 메타정보 갱신 */
     blocks[active_block].valid_page_cnt++;
-    //blocks[active_block].is_free = false;
+    blocks[active_block].is_free = false;
 
     /* L2P 테이블 갱신 */
     int new_ppn     = active_block * block_size + active_offset;
@@ -68,10 +68,7 @@ void GreedyFTL::internalWrite(int logicalPage, int data, bool isHostWrite) {
     ++active_offset;
 
         /* 활성 블록이 꽉 찼으면 새 블록 확보 */
-    if (active_offset == block_size) {
-        blocks[active_block].is_free = false;
-        allocateNewActiveBlock();
-    }
+    if (active_offset == block_size) allocateNewActiveBlock();
 
     /* WAF 통계 */
     ++total_physical_writes;
@@ -95,8 +92,8 @@ void GreedyFTL::garbageCollect() {
     int victim     = -1;
     int max_invalid = -1;
     for (size_t i = 0; i < blocks.size(); ++i) {
-      /* FREE 블록·활성 블록 제외 */
-          //if (blocks[i].is_free || static_cast<int>(i) == active_block) continue;
+        /* FREE 블록·활성 블록 제외 */
+        if (blocks[i].is_free || static_cast<int>(i) == active_block) continue;
 
         if (blocks[i].invalid_page_cnt > max_invalid) {
             max_invalid = blocks[i].invalid_page_cnt;
