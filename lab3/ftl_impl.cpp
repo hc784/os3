@@ -47,7 +47,8 @@ void GreedyFTL::invalidateOldMapping(int logicalPage) {
 }
 
 void GreedyFTL::internalWrite(int logicalPage, int data, bool isHostWrite) {
-
+    /* 활성 블록이 꽉 찼으면 새 블록 확보 */
+    if (active_offset == block_size) allocateNewActiveBlock();
 
     Page& tgt = blocks[active_block].pages[active_offset];
 
@@ -66,9 +67,6 @@ void GreedyFTL::internalWrite(int logicalPage, int data, bool isHostWrite) {
 
     /* 오프셋 증가 */
     ++active_offset;
-
-        /* 활성 블록이 꽉 찼으면 새 블록 확보 */
-    if (active_offset == block_size) allocateNewActiveBlock();
 
     /* WAF 통계 */
     ++total_physical_writes;
