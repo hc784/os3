@@ -9,9 +9,9 @@ TEST_P(FTLTest, Greedy) {
   ftl = new GreedyFTL(total_blocks, block_size);
 }
 
-// TEST_P(FTLTest, Cost_benefit) {
-//   ftl = new CostBenefitFTL(total_blocks, block_size);
-// }
+TEST_P(FTLTest, Cost_benefit) {
+  ftl = new CostBenefitFTL(total_blocks, block_size);
+}
 
 
 INSTANTIATE_TEST_CASE_P(Default, FTLTest,
