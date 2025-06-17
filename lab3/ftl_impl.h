@@ -1,3 +1,11 @@
+/*
+ * DKU Operating System Lab
+ * Lab3 (Flash Translation Layer)
+ * Student id : 32211332
+ * Student name : 김화창
+ * Date : 25-06-07
+ */
+
 #include "ftl.h"
 
 #ifndef FTL_IMPL_H
@@ -26,18 +34,28 @@ public:
 
 class CostBenefitFTL : public FlashTranslationLayer {
     private:
-        // 멤버 변수 추가 선언 가능
-    public:
-        // 생성자
-        CostBenefitFTL(int total_blocks, int block_size) : FlashTranslationLayer(total_blocks, block_size) {
-            name = "CostBenefitFTL";
-        }
-        // 소멸자
-        ~CostBenefitFTL() {}
-        // 멤버 함수 추가 선언 가능
-        void garbageCollect() override;
-        void writePage(int logicalPage, int data) override;
-        void readPage(int logicalPage) override;
+          // 1) 현재 시각(테스트용 time stamp)를 저장하는 멤버
+    int current_time;
+
+    // 2) GreedyFTL과 유사하게 블록 관리를 위한 헬퍼 함수들
+    int  countFreeBlocks() const;         // FREE 블록의 개수 세기
+    int  findFreeBlock()   const;         // erase(혹은 is_free==true)된 블록 하나 찾기
+    void allocateNewActiveBlock();        // 새 활성 블록 할당
+    void invalidateOldMapping(int logicalPage); 
+    void internalWrite(int logicalPage, int data, bool isHostWrite);
+
+public:
+    // 3) 생성자 (ftl_impl.cpp 에서 재정의하지 않고, 헤더에서만 정의해 둠)
+    CostBenefitFTL(int total_blocks, int block_size) 
+        : FlashTranslationLayer(total_blocks, block_size), current_time(0) {
+        name = "CostBenefitFTL";
+    }
+    ~CostBenefitFTL() {}
+
+    // 4) 오버라이드할 가비지 컬렉션 및 Read/Write 인터페이스
+    void garbageCollect() override;
+    void writePage(int logicalPage, int data) override;
+    void readPage(int logicalPage) override;
 };
 
 #endif // FTL_IMPL_H
