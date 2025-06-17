@@ -46,6 +46,12 @@ void GreedyFTL::invalidateOldMapping(int logicalPage) { // 기존 매핑 무효�
 }
 
 void GreedyFTL::internalWrite(int logicalPage, int data, bool isHostWrite) {
+
+    if (active_offset == block_size){
+        allocateNewActiveBlock();          // 새 블록 할당
+        if (countFreeBlocks() <= 1) garbageCollect(); // free 블록 부족 시 GC
+    }       // 블록이 가득 차면
+
     Page& tgt = blocks[active_block].pages[active_offset]; // 대상 페이지
 
     tgt.logical_page_num = logicalPage;   // LPN 기록
@@ -59,9 +65,8 @@ void GreedyFTL::internalWrite(int logicalPage, int data, bool isHostWrite) {
     L2P[logicalPage] = new_ppn;            // L2P 테이블 갱신
 
     ++active_offset;                       // 오프셋 증가
-    if (active_offset == block_size)       // 블록이 가득 차면
-        allocateNewActiveBlock();          // 새 블록 할당
-
+    
+        
     ++total_physical_writes;               // 물리적 쓰기 카운트
     if (isHostWrite) ++total_logical_writes; // 호스트 쓰기면 논리적 쓰기도 증가
 }
@@ -106,7 +111,7 @@ void GreedyFTL::garbageCollect() {
 
 // ───── 호스트 Write ─────
 void GreedyFTL::writePage(int logicalPage, int data) {
-    if (countFreeBlocks() <= 1) garbageCollect(); // free 블록 부족 시 GC
+    
     invalidateOldMapping(logicalPage);            // 기존 매핑 무효화
     internalWrite(logicalPage, data, true);       // 실제 쓰기
 }
